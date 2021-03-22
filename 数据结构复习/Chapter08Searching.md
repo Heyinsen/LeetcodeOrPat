@@ -2,7 +2,7 @@
 
 [ 前序中序后序数列得到树的方式](https://blog.csdn.net/suliangkuanjiayou/article/details/102960971)
 
-# Chapter 08 Searching
+# Chapter08Searching
 
 ## 检索效率的标准
 
@@ -18,7 +18,7 @@ $ASL=\sum{p_i}{c_i}$
 
 假设查找成功和失败的概率相等，那么平均查找长度为：
 
-![image-20210317155221248](Chapter 08 Searching/image-20210317155221248.png)
+![image-20210317155221248](Chapter08Searching/image-20210317155221248.png)
 
 ### 折半查找
 
@@ -61,21 +61,21 @@ int binarySearch(vector<int>& llist, int begin_pos, int end_pos, int val) {
 }
 ```
 
-![image-20210317155931086](Chapter 08 Searching/image-20210317155931086.png)
+![image-20210317155931086](Chapter08Searching/image-20210317155931086.png)
 
-![image-20210317155947523](Chapter 08 Searching/image-20210317155947523.png)
+![image-20210317155947523](Chapter08Searching/image-20210317155947523.png)
 
 **具有n个节点的判定树的深度最多为$\lceil log_2{n} \rceil$**，折半查找成功的比较的次数最多为$\lceil log_2{n} \rceil$，查找不成功的次数为$\lceil log_2{n} \rceil$，于是$AVL$如下所求：
 
-![image-20210317160447260](Chapter 08 Searching/image-20210317160447260.png)
+![image-20210317160447260](Chapter08Searching/image-20210317160447260.png)
 
 当各个节点出现的概率不相等的时候，上面那样构造出来的二叉搜索树未必是最优的，只考虑查找成功的情况下，产生性能最佳的判定树的目标是使得**$PH=\sum_{i=1}^{n}w_ih_i$**最小，$PH$最小的叫做**静态最优查找树**，近似较小的叫做**次优查找树**。
 
 **静态最优查找树**的构造较为困难，在这里构造**静态次优查找树**。
 
-![image-20210317161557966](Chapter 08 Searching/image-20210317161557966.png)
+![image-20210317161557966](Chapter08Searching/image-20210317161557966.png)
 
-![image-20210317161610330](Chapter 08 Searching/image-20210317161610330.png)
+![image-20210317161610330](Chapter08Searching/image-20210317161610330.png)
 
 ```cpp
 #pragma warning(disable:4996)
@@ -170,13 +170,13 @@ int main() {
 
 顺序查找法的一种。
 
-![image-20210317165256024](Chapter 08 Searching/image-20210317165256024.png)
+![image-20210317165256024](Chapter08Searching/image-20210317165256024.png)
 
 ### 索引顺序法
 
-![image-20210317165401090](Chapter 08 Searching/image-20210317165401090.png)
+![image-20210317165401090](Chapter08Searching/image-20210317165401090.png)
 
-![image-20210317165446892](Chapter 08 Searching/image-20210317165446892.png)
+![image-20210317165446892](Chapter08Searching/image-20210317165446892.png)
 
 思想很简单，建立一个索引表，索引表的每一项指向分块的第一个元素的位置，首先查找这个数字在哪个分块，然后再在对应的分块中进行查找，两个地方都用二分或者是顺序查找的方法。
 
@@ -401,7 +401,7 @@ int main() {
 
     [材料来自这，关于二叉搜索树的东西写的很好](https://blog.csdn.net/weixin_45333934/article/details/107357839)
 
-    ![图来自网上](Chapter 08 Searching/image-20210319233944450.png)
+    ![图来自网上](Chapter08Searching/image-20210319233944450.png)
 
     相应的代码如下：
 
@@ -418,7 +418,7 @@ int main() {
 
 8. 给定一个二叉搜索树，有多少种通过不同的序列可以建成这个二叉搜索树？
 
-    ![image-20210319234537490](Chapter 08 Searching/image-20210319234537490.png)
+    ![image-20210319234537490](Chapter08Searching/image-20210319234537490.png)
 
     **其实这个问题不难，只要父亲节点在孩子节点的前面出现，这样的序列都满足要求，我们要求的是有多少种拓扑序列，使得父子满足偏序关系。**
 
@@ -439,7 +439,7 @@ int main() {
 
     在这看一下组合数的递归求法：
 
-    ![image-20210320105648985](Chapter 08 Searching/image-20210320105648985.png)
+    ![image-20210320105648985](Chapter08Searching/image-20210320105648985.png)
 
     写法:
 
@@ -534,7 +534,7 @@ int main() {
         现在目标是求C(n, m) %p，p为素数（经典p=1e9+7）。
         虽然有C(n, m) = n! / [m! (n - m)!]，但由于取模的性质对于除法不适用，则有
 
-        ![在这里插入图片描述](Chapter 08 Searching/20190513133335648.png)
+        ![在这里插入图片描述](Chapter08Searching/20190513133335648.png)
 
         所以需要利用逆元把“除法”转换成“乘法”，才能借助取模的性质计算组合数。
         求解C(n, m)%p的步骤：
@@ -678,15 +678,15 @@ int main() {
 
     * 两个孩子都有，这个情况稍微复杂一些，假设要删除的节点为p，节点f指向p的父亲节点，假设p是f的左孩子（右孩子一样处理），那么有：
 
-        ![image-20210320133448209](Chapter 08 Searching/image-20210320133448209.png)
+        ![image-20210320133448209](Chapter08Searching/image-20210320133448209.png)
 
         一种方法，设s为中序遍历得到的序列种p的直接前驱，那么删除p之后，需要把p的左子树直接作为f的子树，p的右子树作为s的右子树，这是其中的一种操作的方式，用图片表示就是这样：
 
-        ![image-20210320133918229](Chapter 08 Searching/image-20210320133918229.png)
+        ![image-20210320133918229](Chapter08Searching/image-20210320133918229.png)
 
         还有一种操作方式是，用p的直接前驱s去代替p，由于p的直接前驱s最多只有一个子树，所以直接删除原本的s，然后把s的孩子节点接上就好，用图片表示就是这样：
 
-        ![image-20210320134119002](Chapter 08 Searching/image-20210320134119002.png)
+        ![image-20210320134119002](Chapter08Searching/image-20210320134119002.png)
 
     * 具体的实现如下所示(采用第二种相接的策略)：
 
@@ -972,20 +972,20 @@ int main() {
     * LL型调整：
         由于在A的左孩子(L)的左子树(L)上插入新结点，使原来平衡二叉树变得不平衡，此时A的平衡因子由1增至2。下面图1是LL型的最简单形式。显然，按照大小关系，结点B应作为新的根结点，其余两个节点分别作为左右孩子节点才能平衡，A结点就好像是绕结点B顺时针旋转一样。
 
-    ![img](Chapter 08 Searching/20150818212028853)
+    ![img](Chapter08Searching/20150818212028853)
 
     <center>图1  最简单的LL型调整</center>
 
     * LL型调整的一般形式如下图2所示，表示在A的左孩子B的左子树BL(不一定为空)中插入结点(图中阴影部分所示)而导致不平衡( h 表示子树的深度)。这种情况调整如下：①将A的左孩子B提升为新的根结点；②将原来的根结点A降为B的右孩子；③各子树按大小关系连接(BL和AR不变，BR调整为A的左子树)。
 
-    ![img](Chapter 08 Searching/20150818221513880)
+    ![img](Chapter08Searching/20150818221513880)
 
 <center>图2  一般形式的LL型调整</center>
 
 *  RR型调整
     * 由于在A的右孩子(R)的右子树(R)上插入新结点，使原来平衡二叉树变得不平衡，此时A的平衡因子由-1变为-2。图3是RR型的最简单形式。显然，按照大小关系，结点B应作为新的根结点，其余两个节点分别作为左右孩子节点才能平衡，A结点就好像是绕结点B逆时针旋转一样。
 
-        ![img](Chapter 08 Searching/20150818215441436)
+        ![img](Chapter08Searching/20150818215441436)
 
 <center>图3  最简单的RR型调整</center>
 
@@ -993,7 +993,7 @@ int main() {
 
     * RR型调整的一般形式如下图4所示，表示在A的右孩子B的右子树BR(不一定为空)中插入结点(图中阴影部分所示)而导致不平衡( h 表示子树的深度)。这种情况调整如下：①将A的右孩子B提升为新的根结点；②将原来的根结点A降为B的左孩子；③各子树按大小关系连接(AL和BR不变，BL调整为A的右子树)。
 
-        ![img](Chapter 08 Searching/20150818220942825)
+        ![img](Chapter08Searching/20150818220942825)
 
 <center>图4  一般形式的RR型调整</center>
 
@@ -1001,14 +1001,14 @@ int main() {
 
     * 由于在A的左孩子(L)的右子树(R)上插入新结点，使原来平衡二叉树变得不平衡，此时A的平衡因子由1变为2。图5是LR型的最简单形式。显然，按照大小关系，结点C应作为新的根结点，其余两个节点分别作为左右孩子节点才能平衡。
 
-    ![img](Chapter 08 Searching/20150818222514855)
+    ![img](Chapter08Searching/20150818222514855)
 
 <center>图5  最简单的LR型调整</center>
 
 * LR型调整：
     * LR型调整的一般形式如下图6所示，表示在A的左孩子B的右子树(根结点为C，不一定为空)中插入结点(图中两个阴影部分之一)而导致不平衡( h 表示子树的深度)。这种情况调整如下：①将C的右孩子B提升为新的根结点；②将原来的根结点A降为C的右孩子；③各子树按大小关系连接(BL和AR不变，CL和CR分别调整为B的右子树和A的左子树)。
 
-    ![img](Chapter 08 Searching/20150818224419149)
+    ![img](Chapter08Searching/20150818224419149)
 
 <center>图6  一般形式的LR型调整</center>
 
@@ -1018,7 +1018,7 @@ int main() {
 
     * 由于在A的右孩子(R)的左子树(L)上插入新结点，使原来平衡二叉树变得不平衡，此时A的平衡因子由-1变为-2。图7是RL型的最简单形式。显然，按照大小关系，结点C应作为新的根结点，其余两个节点分别作为左右孩子节点才能平衡。
 
-    ![img](Chapter 08 Searching/20150818224940731)
+    ![img](Chapter08Searching/20150818224940731)
 
 <center>图7  最简单的RL型调整</center>
 
@@ -1028,7 +1028,7 @@ int main() {
 
     * 一般形式如下图8所示，表示在A的右孩子B的左子树(根结点为C，不一定为空)中插入结点(图中两个阴影部分之一)而导致不平衡( h 表示子树的深度)。这种情况调整如下：①将C的右孩子B提升为新的根结点；②将原来的根结点A降为C的左孩子；③各子树按大小关系连接(AL和BR不变，CL和CR分别调整为A的右子树和B的左子树)。
 
-    ![img](Chapter 08 Searching/20150818230041580)
+    ![img](Chapter08Searching/20150818230041580)
 
 <center>图8  一般形式的RL型调整</center>
 
@@ -1068,9 +1068,9 @@ int main() {
 
 ### Static m-searching Tree
 
-![image-20210321143029763](Chapter 08 Searching/image-20210321143029763.png)
+![image-20210321143029763](Chapter08Searching/image-20210321143029763.png)
 
-![image-20210321143054190](Chapter 08 Searching/image-20210321143054190.png)
+![image-20210321143054190](Chapter08Searching/image-20210321143054190.png)
 
 * 多级索引，每一级索引是一个列表，列表的每一个元素存储了下一级的一个列表的最大的元素，这样我们就可以逐级向下去索引去查找我们的值。
 
@@ -1111,7 +1111,7 @@ int main() {
         
         ```
 
-        ![image-20210321144715668](Chapter 08 Searching/image-20210321144715668.png)
+        ![image-20210321144715668](Chapter08Searching/image-20210321144715668.png)
 
 3. B树上的查找：
 
@@ -1164,7 +1164,7 @@ int main() {
 
     ​    现在考虑最坏的情况：看含N个关键字的m阶B树的最大深度是多少？ 
 
-    ![image-20210321145708283](Chapter 08 Searching/image-20210321145708283.png)
+    ![image-20210321145708283](Chapter08Searching/image-20210321145708283.png)
 
     
 
@@ -1172,9 +1172,9 @@ int main() {
 
     ​    B树的生成也是从空树起，逐个插入关键字而得。但由于B树结点中的关键字个数必须大于等于$\lceil m/2 \rceil －1$，因此每次插入一个关键字不是在树中添加一个叶子结点，而是首先**在最低层的非终端结点中添加一个关键字**，若该结点关键字个数不超过m-1，则插入完成，否则，要产生结点的“**分裂**”。
 
-    ![image-20210321150026687](Chapter 08 Searching/image-20210321150026687.png)
+    ![image-20210321150026687](Chapter08Searching/image-20210321150026687.png)
 
-    ![image-20210321150034947](Chapter 08 Searching/image-20210321150034947.png)
+    ![image-20210321150034947](Chapter08Searching/image-20210321150034947.png)
 
 6. 插入的代码如下：
 
@@ -1216,17 +1216,17 @@ int main() {
 
     ​    假若所删关键字为非终端结点中的Ki，则可以用指针Ai所指子树中最小关键字Y替代Ki，然后在相应的结点中删去Y。而Y肯定在最下层的结点中，因此下面只需讨论删除最下层非终端结点中关键字的情形，这有三种可能：
 
-      ![image-20210321150948733](Chapter 08 Searching/image-20210321150948733.png)
+      ![image-20210321150948733](Chapter08Searching/image-20210321150948733.png)
 
-    ![image-20210321150958048](Chapter 08 Searching/image-20210321150958048.png)
+    ![image-20210321150958048](Chapter08Searching/image-20210321150958048.png)
 
-    ![image-20210321150938563](Chapter 08 Searching/image-20210321150938563.png)
+    ![image-20210321150938563](Chapter08Searching/image-20210321150938563.png)
 
-    ![image-20210321151005129](Chapter 08 Searching/image-20210321151005129.png)
+    ![image-20210321151005129](Chapter08Searching/image-20210321151005129.png)
 
-    ![image-20210321151010713](Chapter 08 Searching/image-20210321151010713.png)
+    ![image-20210321151010713](Chapter08Searching/image-20210321151010713.png)
 
-    ![image-20210321151209785](Chapter 08 Searching/image-20210321151209785.png)
+    ![image-20210321151209785](Chapter08Searching/image-20210321151209785.png)
 
 8. B**＋树
 
@@ -1240,7 +1240,7 @@ int main() {
 
 ​    (3) 所有的非终端结点可以看成是**索引部分**，结点中仅含有其子树(根结点)中最大(或最小)关键字。
 
-![image-20210321151533720](Chapter 08 Searching/image-20210321151533720.png)
+![image-20210321151533720](Chapter08Searching/image-20210321151533720.png)
 
 B+树进行两种搜索运算：
 
@@ -1403,15 +1403,15 @@ B+树的删除仅在叶结点上进行。
 
     
 
-    ![image-20210322205050053](Chapter 08 Searching/image-20210322205050053.png)
+    ![image-20210322205050053](Chapter08Searching/image-20210322205050053.png)
 
-    ![image-20210322205118505](Chapter 08 Searching/image-20210322205118505.png)
+    ![image-20210322205118505](Chapter08Searching/image-20210322205118505.png)
 
 ## 字典的各种比较
 
-![image-20210322205208711](Chapter 08 Searching/image-20210322205208711.png)
+![image-20210322205208711](Chapter08Searching/image-20210322205208711.png)
 
-![image-20210322205219665](Chapter 08 Searching/image-20210322205219665.png)
+![image-20210322205219665](Chapter08Searching/image-20210322205219665.png)
 
 ## 键树，字典树
 
