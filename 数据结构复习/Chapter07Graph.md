@@ -457,7 +457,7 @@ void DFS (Graph *pgraph, int visited[], int i)
 
 1. # **tarjan算法**（待学）
 
-    [tarjan算法的求解](https://zhuanlan.zhihu.com/p/101923309)
+    [tarjan算法的求解学习](https://zhuanlan.zhihu.com/p/101923309)
 
     
 
