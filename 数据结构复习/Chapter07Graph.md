@@ -453,13 +453,222 @@ void DFS (Graph *pgraph, int visited[], int i)
 }
 ```
 
+**tarjan算法**（待学）
+
+[tarjan算法的求解学习](https://zhuanlan.zhihu.com/p/101923309)
+
+[为什么有向图要操作栈](https://www.luogu.com.cn/blog/computerlover/lun-tarjan-suan-fa-zhong-zhan-di-zuo-yong)
+
+知乎上的这篇文章讲的很好，讲述了tarjan算法的基本的思想，通俗易懂，但是需要**注意的是:tarjan算法求无向图的割点与桥，以及求有向图的强连通分量，在代码的实现的细节上是有不同的**，这个需要十分注意。
+
+1. **无向图的割点与桥**
+
+```cpp
+// 没跑过
+#include<cstdio>
+#include<iostream>
+#include<vector>
+using namespace std;
+
+const int maxn=1005;
+struct Node{
+    int v;
+    int isCut;// 该边是不是桥
+    Node(){}
+    Node(int _v,int _isCut){
+        v=_v;
+        isCut=_isCut;
+    }
+};
+vector<vector<Node>>head;// 邻接表的头节点
+vector<int>cut;// 判断顶点是不是割点
+
+vector<int>dfn;// 顶点访问的顺序
+int cnt=0;// 当前时间戳
+vector<int>low;// 子节点最早能访问的非父亲节点的节点的dfn的值
+
+// 无向连通图G中，一个顶点是割点
+// 1、根结点u为割顶当且仅当它有两个或者多个子结点；
+// 2、非根结点u为割顶当且仅当u存在结点v，使得v极其所有后代都没有反向边可以连回u的祖先（u不算）
+// 第二个条件的代码中就是low[u]<=low[v]
+// 一条边为桥
+// 当且仅当该边的孩子节点没有反向边可以连向父亲或者是祖先节点
+// 放在代码中就是low[u]<low[v]，少了一个=
+void tarjan(int u,int fat){
+    dfn[u]=low[u]=++cnt;// 0代表没有访问过
+    // instack[u]=true;
+    int son=0;//记录根节点有多少孩子节点，根节点满足u==fat
+    int prevCnt=0;
+    for(int i=0;i<head[u].size();i++){
+        Node &node=head[u][i];
+        int& v=node.v;
+        if(v==fat&&prevCnt==0){// 处理重根，也可以放在下面的else if判断中处理
+            prevCnt++;
+            continue;
+        }
+        if(!dfn[v]){
+            son++;
+            tarjan(v,u);
+            low[u]=min(low[u],low[v]);
+            // 桥<=
+            if(dfn[u]<low[v]){
+                // 桥
+                head[u][i].isCut=true;
+                head[u][i^1].isCut=true;
+            }
+            // 割点,非根节点,和桥不一样的是一个=
+            if(u!=fat&&dfn[u]<=low[v]){
+                cut[i]=true;
+            }
+        }
+        else if(low[u]>dfn[v]){// 上面已经处理过重边，这边不需要处理
+           low[u]=dfn[v];
+        }
+    }
+    // 根节点
+    if(u==fat&&son>1){
+        cut[u]=true;
+    }
+}
 
 
-1. # **tarjan算法**（待学）
-
-    [tarjan算法的求解学习](https://zhuanlan.zhihu.com/p/101923309)
-
+int main(){
+    int n;
+    int m;
+    cin>>n>>m;
+    head.resize(n); cut.resize(n);
+    dfn.resize(n);
+    low.resize(n);
+    cnt=0;
     
+    for(int i=0;i<m;i++){
+        int u,v;
+        cin>>u>>v;
+        head[u].push_back(Node(v,0)); 
+        head[v].push_back(Node(u,0)); 
+    }
+
+    for(int i=0;i<n;i++){
+        if(!dfn[i]){
+            tarjan(i,i);
+        }
+    }
+}
+```
+
+![image-20210326000455067](Chapter07Graph/image-20210326000455067.png)
+
+![image-20210326000504106](Chapter07Graph/image-20210326000504106.png)
+
+上面是kuangbin大神的原代码。
+
+```cpp
+// 没跑过
+#include<cstdio>
+#include<iostream>
+#include<vector>
+using namespace std;
+
+const int maxn=1005;
+struct Node{
+    int v;
+    Node(){}
+};
+vector<vector<Node>>head;// 邻接表的头节点
+int scc;//强连通分量的个数
+
+vector<int>dfn;// 顶点访问的顺序
+int cnt=0;// 当前时间戳
+vector<int>low;// 子节点最早能访问的非父亲节点的节点的dfn的值
+
+// 有向图中使用
+vector<int>instack; // 当前节点是否在栈中,求割点与桥的时候不需要这个变量
+vector<int>sstack;// 栈，求割点与桥不需要这个变量
+
+// 无向连通图G中，一个顶点是割点
+// 1、根结点u为割顶当且仅当它有两个或者多个子结点；
+// 2、非根结点u为割顶当且仅当u存在结点v，使得v极其所有后代都没有反向边可以连回u的祖先（u不算）
+// 第二个条件的代码中就是low[u]<=low[v]
+// 一条边为桥
+// 当且仅当该边的孩子节点没有反向边可以连向父亲或者是祖先节点
+// 放在代码中就是low[u]<low[v]，少了一个=
+void tarjan(int u){
+    dfn[u]=low[u]=++cnt;// 0代表没有访问过
+    int son=0;//记录根节点有多少孩子节点，根节点满足u==fat
+    instack[u]=true;
+    sstack.push_back(u);
+    for(int i=0;i<head[u].size();i++){
+        Node &node=head[u][i];
+        int& v=node.v;
+        if(!dfn[v]){
+            tarjan(v);
+            low[u]=min(low[u],low[v]);
+        }
+        else if(instack[v]&&low[u]>dfn[v]){// 上面已经处理过重边，这边不需要处理
+           low[u]=dfn[v];
+        }
+    }
+    if(low[u]==dfn[u]){
+        scc++;
+        do{
+            v=sstack[sstack.size()-1];
+            sstack.pop_back();
+            instack[v]=false;
+            // belong[v]=scc;
+            
+        }
+        while(v!=u)
+    }
+    // 根节点
+    if(u==fat&&son>1){
+        cut[u]=true;
+    }
+}
+
+
+int main(){
+    int n;
+    int m;
+    cin>>n>>m;
+    head.resize(n); cut.resize(n);
+    dfn.resize(n);
+    low.resize(n);
+    instack.resize(n);
+    cnt=0;
+    
+    for(int i=0;i<m;i++){
+        int u,v;
+        cin>>u>>v;
+        head[u].push_back(v); 
+        head[v].push_back(u); 
+    }
+
+    for(int i=0;i<n;i++){
+        if(!dfn[i]){
+            tarjan(i,i);
+        }
+    }
+}
+```
+
+
+
+有向图求强连通分量和无向图的不一样的地方：
+
+![image-20210326000549500](Chapter07Graph/image-20210326000549500.png)
+
+![image-20210326000558580](Chapter07Graph/image-20210326000558580.png)
+
+**可以看到，增加了一个对栈的操作**？
+
+为什么要判断一个东西是否入栈？
+
+* tarjan算法中的栈，栈中的所有的元素很可能是在**同一个强连通分量之中**，对于边<u,v>，如果u在栈中v不在栈中，但是v又已经被访问过的话，<u,v>不会是在一个强连通分量之中，因此，节点是否在栈之重对我们的结果影响很大。
+* 无向图来说，u和v的连通性并不会受到影响，v在不在栈中是无所谓的。
+
+**另外，不能对边进行判重**
+
+
 
 ## 最小代价生成树和最短路径
 
