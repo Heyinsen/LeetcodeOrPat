@@ -90,15 +90,13 @@ int dijkstra(int beg_,int end_, int n, int m){
         }
         vis[min_pos]=true;
         for(int j=0;j<n;j++){
-            // 没写!vis[j]因为需要持续更新num[]和cnt[]
-            if(g[min_pos][j]+min_val<dist[j]){
+            if(!vis[min_pos]&&g[min_pos][j]+min_val<dist[j]){
                 dist[j]=g[min_pos][j]+min_val;
                 num[j]=num[min_pos]+vs[j];
                 // 这里容易写错，原本写的cnt[j]=1
                 cnt[j]=cnt[min_pos];
-                // vis[j]=true;
             }
-            else if(g[min_pos][j]+min_val==dist[j]){
+            else if(!vis[min_pos]&&g[min_pos][j]+min_val==dist[j]){
                 num[j]=max(num[min_pos]+vs[j],num[j]);
                 cnt[j]+=cnt[min_pos];
             }

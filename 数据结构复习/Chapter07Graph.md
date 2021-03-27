@@ -668,10 +668,604 @@ int main(){
 
 **另外，不能对边进行判重**
 
+## 最小代价生成树和最短路径(Minimum Property of MCST):
+
+n个城市之间建立通信线路，连接n个城市需要n-1条线路，如何铺设才能最节省资金?
+
+**{V,E}是一个连通网络，U是顶点集合V的一个连通子集，若(u,v)是一个具有最小权值的边，$u\in U,v\in V$，必存在一棵包含$(u,v)$的最小生成树。**
+
+可以通过反证法证明。
+
+### Prime算法(不断生长的以顶点为主的)
+
+顶点的集合为V，边的集合为E，初始时候U={u1}($u1\in V$)，TE={},那么我们重复执行以下的操作：
+
+在所有的$u\in U，v \in V-u$的边中找到一条代价最小的边并入集合TE，同时$v1$并入$U$，直到找到$U=V$为止。$TE$中必然有$n-1$条边，此时的$T=(V,{TE})$即为最小生成树。
+
+**时间复杂度分析：prime算法的时间复杂度为$O(n^2)$**，和边的数目无关，因此顶点的个数比较少，边的个数相对比较多的时候可以采用。
+
+prime算法的实现：
+
+```cpp
+#pragma warning(disable:4996)
+#include<cstdio>
+#include<iostream>
+#include<vector>
+using namespace std;
+
+class Solution {
+public:
+	struct V_ele {
+		int dist;
+		int isUsed;
+		V_ele(int _dist=0, int _isUsed=0) {
+			dist = _dist;
+			isUsed = _isUsed;
+		}
+	};
+	vector<V_ele>dist;// 集合U中的元素到集合V的最短的距离
+	struct E_ele {
+		int v;
+		int w;
+		E_ele() {}
+		E_ele(int _v, int _w) {
+			v = _v;
+			w = _w;
+		}
+	};
+	vector<vector<E_ele>>e;
+
+	Solution(int vNum) {
+		dist.resize(vNum);
+		e.resize(vNum);
+	}
+	void addEdge(int _u, int _v, int _w) {
+		e[_u].push_back(E_ele(_v, _w));
+	}
+	void prime() {
+		vector<int>path;// 存放最小生成树的所有的顶点
+		int res = 0;
+
+		int n = dist.size();
+		if (n <= 0) {
+			return;
+		}
+		dist[0].isUsed = true;
+		const int INF = 0x3f3f3f3f;
+
+		for (int i = 0; i < e[0].size(); i++) {
+			int& v = e[0][i].v, & w = e[0][i].w;
+			if (dist[v].isUsed)continue;
+			dist[v].dist = w;
+		}
+
+		for (int i = 0; i < n - 1; i++) {
+			int minDist = INF, minPos = -1;
+			for (int j = 0; j < n; j++) {
+				if (!dist[j].isUsed && dist[j].dist != 0 && minDist > dist[j].dist) {
+					minDist = dist[j].dist;
+					minPos = j;
+					
+				}
+			}
+			cout << minDist << " " << minPos << endl;
+			if (minPos == -1) {
+				return;
+			}
+			dist[minPos].isUsed = true;
+
+			path.push_back(minPos);
+			res += minDist;
+
+			for (int j = 0; j < e[minPos].size(); j++) {
+				int& v = e[minPos][j].v, & w = e[minPos][j].w;
+				if (!dist[v].isUsed && (dist[v].dist==0 || dist[v].dist > w)) {
+					dist[v].dist = w;
+				}
+			}
+		}
+		for (int i = 0; i < path.size() - 1; i++) {
+			cout << path[i] << " ";
+		}
+		cout << path[path.size() - 1] << endl;
+		cout << "Minimum cost is: " << res << "\n";
+		return;
+	}
+};
 
 
-## 最小代价生成树和最短路径
+int main() {
+	int n, m;
+	cin >> n >> m;
+	int u, v, w;
+	Solution sol(n);
+	for (int i = 0; i < m; i++) {
+		scanf("%d%d%d", &u, &v, &w);
+		sol.addEdge(u, v, w);
+		sol.addEdge(v, u, w);
+	}
+	sol.prime();
+	return 0;
+}
+/*
+7 9
+0 1 28
+0 5 10
+1 2 16
+1 6 14
+5 4 25
+6 4 24
+6 3 18
+4 3 22
+2 3 12
+*/
+```
 
 
+
+### Kruskal算法(不断生长的以边为主的)
+
+算法：设连通网N＝(V, {E})。令最小生成树的初始状态为只有n个顶点而无边的非连通图T＝(V, { })，图中每个顶点自成一个连通分量。在E中选择代价最小的边，若该边依附的顶点落在T中不同的连通分量上，则将此边加入T中，否则舍去此边而选择下一条代价最小的边。以此类推，直到T中所有顶点都在同一连通分量上为止。
+
+并查集判断两个点是否在同一个集合内。
+
+​	**时间复杂度分析：kruskal算法的时间复杂度为$O(eloge)$**，适合使用在边稀疏的图上面。
+
+```cpp
+// 使用堆存放kruskal算法的边，每次选择最小的边
+#pragma warning(disable:4996)
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <set>
+#include <algorithm>
+using namespace std;
+
+class Kruskal
+{
+public:
+    class Edge
+    {
+    public:
+        int u, v, w;
+        Edge(int _u = 0, int _v = 0, int _w = 0) {
+            u = _u;
+            v = _v;
+            w = _w;
+        }
+        bool operator<(const Edge& e) const
+        { // 最小堆
+            return w > e.w;
+        }
+    };
+
+    Kruskal(int _n = 0)
+    {
+        n = _n;
+        len = 0;
+    }
+
+    int n;
+    vector<Edge> heap; //最小堆
+    set<int> res;      // 存放树上的所有的节点
+    int len = 0;       // 树的总的长度
+
+    void addEdge(int _u, int _v, int _w)
+    {
+        heap.push_back(Edge(_u, _v, _w));
+    }
+
+    class Unionfind
+    {
+    public:
+        vector<int> fat;
+        Unionfind(int _n)
+        {
+            fat.resize(_n);
+            for (int i = 0; i < _n; i++)
+            {
+                fat[i] = i;
+            }
+        }
+        int findFat(int u)
+        {
+            if (u == fat[u])
+            {
+                return u;
+            }
+            return fat[u] = findFat(fat[u]);
+        }
+        void unionSet(int u, int v)
+        {
+            int fat1 = findFat(u);
+            int fat2 = findFat(v);
+            if (fat1 == fat2)
+            {
+                return;
+            }
+            fat[fat1] = fat2;
+        }
+    };
+
+    void kruskal()
+    {
+        // 并查集判断两个是否属于同i个连通分量
+        make_heap(heap.begin(), heap.end());
+        int pos = heap.size();
+        Unionfind uni(n);
+        len = 0;
+        for (int i = 0; i < n - 1; i++)
+        {
+            while (pos>=1)
+            {
+                pop_heap(heap.begin(), heap.begin() + pos);
+                int& u = heap[pos-1].u, & v = heap[pos-1].v, & w = heap[pos-1].w;
+                int fat1 = uni.findFat(u), fat2 = uni.findFat(v);
+                pos--;
+                if (fat1 == fat2)
+                {
+                    continue; 
+                }
+                else
+                {
+                    res.insert(w);
+                    uni.unionSet(u, v);
+                    len += w;
+                }
+            }
+        }
+        cout << "Len is: " << len << endl;
+        for (auto& val : res)
+        {
+            cout << val << " ";
+        }
+        cout << endl;
+    }
+};
+
+int main()
+{
+    int n, m;
+    cin >> n >> m;
+    int u, v, w;
+    // Solution sol(n);
+    Kruskal kru(7);
+    for (int i = 0; i < m; i++)
+    {
+        scanf("%d%d%d", &u, &v, &w);
+        // sol.addEdge(u,v,w);
+        // sol.addEdge(v,u,w);
+        kru.addEdge(u, v, w);
+    }
+     //sol.prime();
+    kru.kruskal();
+    return 0;
+}
+```
+
+### 关节点和重连通分量
+
+深度优先搜索的过程中，关节点有两种特性，对于连通图的生成树中任一顶点v，其孩子结点为在它之后搜索到的邻接点，而其双亲结点和祖先结点为在它之前搜索到的邻接点。  
+
+(1) 若生成树有两棵或两棵以上的子树，则此根结点必为关节点。如图中v1。
+
+(2) 若生成树中某个非叶子结点v，其某棵子树的根或子树中其他结点均没有指向v的祖先结点的回边，则v为关节点。
+
+**时间复杂度：**和深搜相同，首先图不一定是连通的，一个$O(n)$，第二每个顶点要遍历所有的边，大概在$O(n+e)$的时间复杂度
+
+```cpp
+// tarjan算法实现求关节点
+#include<cstdio>
+#include<iostream>
+#include<vector>
+#include<set>
+using namespace std;
+
+vector<vector<int>>e;
+void addEdge(int u, int v) {
+	e[u].push_back(v);
+}
+
+vector<int>dfn, low;
+int cnt = 0;
+set<int>ans;
+void tarjan(int u, int pre) {
+	dfn[u] = low[u] = ++cnt;
+	int son = 0;
+	for (auto& v : e[u]) {
+		if (!dfn[v]) {
+			son++;	// 孩子的数目
+			tarjan(v, u);
+			if (low[u] > low[v]) {
+				low[u] = low[v];
+			}
+			if (u != pre && dfn[u] <= low[v]) {// 当前不是根节点
+				ans.insert(u);
+			}
+		}
+		else if (low[u] > dfn[v] && u != pre) {// 不是根节点并且不是重边
+			low[u] = dfn[v];
+		}
+	}
+	if (u == pre && son > 1) {
+		ans.insert(u);
+		cout << ans.size() << "个割点\n";
+		for (auto& val : ans) {
+			cout << val + 1 << " ";
+		}
+		cout << "\n";
+	}
+}
+int main() {
+	int n, m;
+	cin >> n >> m;
+	e.resize(n);
+	dfn.resize(n);
+	low.resize(n);
+
+	int u, v, w;
+	for (int i = 0; i < m; i++) {
+		cin >> u >> v;
+		addEdge(u - 1, v - 1);
+		addEdge(v - 1, u - 1);
+	}
+	// 假设图是连通的
+	tarjan(0, 0);
+}
+```
+
+其它的方法不再细述。
+
+### 最短路
+
+**单源点到其它的节点的最短路径就是简单的dijkstra算法，这里不再细述**。
+
+**时间复杂度$O(n^2)$**
+
+```cpp
+// 变形，PAT1003
+#include<cstdio>
+#include<iostream>
+#include <algorithm>
+#include<vector>
+#include <queue>
+using namespace std;
+const int MAXN=505;
+const int INF=0x3f3f3f3f;
+
+int vs[MAXN];	// 点的权值
+int g[MAXN][MAXN];	// 存放图数据的矩阵，不可达为INF
+int routes=0;	// 存放最终beg_到end_的发现的路线的数量
+int max_people=0;	// 存放最终beg_到end_的最多聚集的救援队的数量
+int cnt[MAXN];	// 起点到其它城市的路径的数量
+int num[MAXN];	// 起点到其它城市的获得的救援队的数量
+
+int dijkstra(int beg_,int end_, int n, int m){
+    bool vis[MAXN]={false};	// 代表顶点i是否被浏览过
+    int dist[MAXN]={0};	
+    for(int i=0;i<n;i++){
+        dist[i]=g[beg_][i];
+    }
+    dist[beg_]=0;
+    // 下面的这句话不能写，即使是下面的循环for(int i=0;i<n;i++)写成for(int i=0;i<n-1;i++)也不行，因为这样会使得num和cnt数组没有维护好
+    // vis[beg_]=true;
+    cnt[beg_]=1;
+    num[beg_]=vs[beg_];
+
+
+    for(int i=0;i<n;i++){
+        // 先找到最短的距离
+        int min_val=INF,min_pos=-1;
+        for(int j=0;j<n;j++){
+            if(!vis[j]&&min_val>=dist[j]){
+                min_val=dist[j];
+                min_pos=j;
+            }
+        }
+        if(min_pos==-1){
+            return INF;
+        }
+        vis[min_pos]=true;
+        for(int j=0;j<n;j++){
+            if(!vis[min_pos]&&g[min_pos][j]+min_val<dist[j]){
+                dist[j]=g[min_pos][j]+min_val;
+                num[j]=num[min_pos]+vs[j];
+                // 这里容易写错，原本写的cnt[j]=1
+                cnt[j]=cnt[min_pos];
+            }
+            else if(!vis[min_pos]&&g[min_pos][j]+min_val==dist[j]){
+                num[j]=max(num[min_pos]+vs[j],num[j]);
+                cnt[j]+=cnt[min_pos];
+            }
+
+        }
+        // 没直接返回是为了持续更新上面的cnt和num数组
+        // if(vis[end_]){
+        //     return dist[end_];
+        // }
+
+    }
+    routes=cnt[end_];
+    max_people=num[end_];
+    return dist[end_];
+}
+
+
+// 没有用到
+struct Node{
+    int first;
+    int second;
+    int third;
+    Node(){}
+    Node(int first_,int second_,int third_){
+        this->first=first_;
+        this->second=second_;
+        this->third=third_;
+    }
+};
+queue<Node>q;
+void bfs(int beg_,int end_,int n,int m,int short_dis){
+    q.push(Node(beg_,0, vs[beg_]));
+    while(!q.empty()){
+        Node top=q.front();
+        q.pop();
+        int cost_already=top.second;
+        int cur_place=top.first;
+        int people_already=top.third;
+        if(cur_place==end_&&cost_already==short_dis){
+            routes++;
+            if(max_people<people_already){
+                max_people=people_already;
+            }
+        }
+        for(int i=0;i<n;i++){
+            Node node;
+            if(cost_already+g[cur_place][i]<=short_dis){
+                node.second=cost_already+g[cur_place][i];
+                node.first=i;
+                node.third=people_already+vs[i];
+                q.push(node);
+            }
+        }
+    }
+    return;
+}
+// 结束没有用到
+
+int main(){
+    int n,m;
+    int beg_,end_;
+    scanf("%d%d%d%d",&n,&m,&beg_,&end_);
+    int tmp;
+    for(int i=0;i<n;i++){
+        scanf("%d",&tmp);
+        vs[i]=tmp;
+    }
+
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            g[i][j]=INF;
+        }
+    }
+    int u,v,w;
+    for(int i=0;i<m;i++){
+        scanf("%d%d%d",&u,&v,&w);
+        g[u][v]=g[v][u]=w;
+        // 没有对边进行去重
+    }
+//    if(n==0){
+//        printf("%d %d\n",0,0);
+//        return 0;
+//    }
+//    else if(beg_==end_){
+//        printf("%d %d\n",1,vs[beg_]);
+//        return 0;
+//    }
+
+    int short_dis=dijkstra(beg_,end_,n,m);
+//    cout<<"short_dis: "<< short_dis<<endl;
+//    bfs(beg_,end_,n,m,short_dis);
+    printf("%d %d\n",routes,max_people);
+    return 0;
+}
+
+
+```
+
+
+
+这里说一下**Floyed算法**，时间复杂度$O(n^3)$，但是写法十分的简单，求任意两个顶点之间的最短路径，也可以追踪最短路径。
+
+理解：对于$k=1到n$的每一个顶点，对于每一个顶点$i,0<=i<n$到顶点$j,0<=j<n$来说，我们都可以判断$i到j$是否经过序号不超过$k$的顶点的最短距离，$dist[i][j]$就表示$i到j$是否经过序号不超过$k$的顶点的最短距离，这是一个动态规划的问题。
+
+```cpp
+// dist[i][j]代表顶点i到顶点j的最短路径
+// path[i][j]代表顶点i到顶点j的下一个最短路径
+#include<cstdio>
+#include<iostream>
+#include <algorithm>
+#include<vector>
+#include <queue>
+using namespace std;
+const int INF = 0x3f3f3f3f;
+const int MAXN = 105;
+int g[MAXN][MAXN];
+int dist[MAXN][MAXN];
+int path[MAXN][MAXN];
+int n, m;
+
+void addEdge(int _u, int _v, int _w) {
+    g[_u][_v] = _w;
+}
+
+void floyed() {
+    memset(dist, 0x3f, sizeof(dist));
+    memset(path, 0xff, sizeof(path));
+
+    // 初始化
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (g[i][j] < INF) {
+                dist[i][j] = g[i][j];
+                path[i][j] = j;
+            }
+        }
+    }
+    for (int k = 0; k < n; k++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i != j && i != k && j != k) {
+                    if (dist[i][k] > INF || dist[k][j] > INF)continue;
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        path[i][j] = path[i][k];
+                    }
+                }
+            }
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cout << dist[i][j] << " ";
+        }
+        cout << "\n";
+    }
+}
+
+int main() {
+    cin >> n >> m;
+    int u, v, w;
+    memset(g, 0x3f, sizeof(g));
+    for (int i = 0; i < m; i++) {
+        cin >> u >> v >> w;
+        addEdge(u, v, w);
+        addEdge(v, u, w);
+    }
+    floyed();
+}
+
+```
+
+## 有向无环图(Directed Acyclic Graph)及其应用
+
+**有向无环图**可以用来表示含有**公共子式的表达式**的有效的工具。
+
+**公共子式的表达式**可以用树形结构来描述，但是树形结构来描述会出现很多重复的东西，这个时候我们使用有向无环图去描述就更加的合理一些。 
+
+**无向图判断环是否出现很简单，只需要判断是否出现过u之前已经遍历过，现在又遍历到了就好**。
+
+**有向入的遍历比较复杂，不能像无向图那样遍历，因为对于dfs的根节点来说，再遍历第2棵子树的时候，如果发现已经遍历过的顶点，这个顶点可能是第一棵子树上的顶点。**
+
+但是如果从u开始遍历，有遍历到u，那肯定是有环。
+
+#### 如何判断无向图有环？
+
+这个很简单，上面已经说了。
+
+#### 如何判断有向图有环？
+
+1. **有向图的环其实就是一个强连通分量**，我们只需要使用**tarjan算法**去找强连通分量即可，或者可以使用**Kosaraju**算法。
+2. **拓扑排序**，如果可以进行拓扑排序的话，说明无环，如果不能进行拓扑排序，说明有环。
+3. [DFS判断一个图是否有环](https://blog.csdn.net/gh6267/article/details/79100408)
 
 ## 拓扑排序
