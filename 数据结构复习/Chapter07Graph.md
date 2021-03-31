@@ -1264,8 +1264,660 @@ int main() {
 
 #### 如何判断有向图有环？
 
-1. **有向图的环其实就是一个强连通分量**，我们只需要使用**tarjan算法**去找强连通分量即可，或者可以使用**Kosaraju**算法。
+1. **有向图的环其实就是一个强连通分量**，我们只需要使用**tarjan算法**去找强连通分量即可，或者可以使用**Kosaraju**算法, 这样都可以判断是否有环。
+
+    ```cpp
+    #pragma warning(disable : 4996)
+    #include <cstdio>
+    #include <iostream>
+    #include <vector>
+    #include <set>
+    #include <queue>
+    #include<algorithm>
+    using namespace std;
+    
+    // 边
+    class Edge {
+    public:
+        int v, w;
+        Edge() {}顶点的个数, cnt: tarjan遍历到哪几个元素
+        Edge(int _v) {
+            v = _v;
+        }
+        Edge(int _v, int _w) {
+            v = _v;
+            w = _w;
+        }
+    };
+    
+    // tarjan算法求强连通分量
+    class Tarjan
+    { // tarjan算法求强连通分量
+    public:
+        int strongConnect = 0;// 强连通分量的个数
+        vector<int>belong;	// 每一个顶点属于哪一个强连通分量
+    
+        vector<int> dfn, low;
+        vector<int>sstack, instack;// 栈，元素是否在栈中
+        int n, cnt;// n: 顶点的个数, cnt: tarjan遍历到哪几个元素
+        vector<vector<Edge>>edge;// 邻接表存放边
+        Tarjan() {}
+        Tarjan(int _n) {
+            n = _n;
+            cnt = 0;
+            strongConnect = 0;
+            dfn.resize(n);
+            low.resize(n);
+            instack.resize(n);
+            sstack.clear();
+            edge.resize(n);
+            belong.resize(n);// 属于哪个强连通分量
+        }
+        void addEdge(int _u, int _v) {
+            edge[_u].push_back(Edge(_v));
+        }
+        void addEdge(int _u, int _v, int _w) {
+            edge[_u].push_back(Edge(_v, _w));
+        }
+        void tarjan(int u)
+        {
+            dfn[u] = low[u] = ++cnt;
+            instack[u] = true;
+            sstack.push_back(u);
+            // 没有重边
+            for (auto& e : edge[u]) {
+                int& v = e.v, & w = e.w;
+                if (!dfn[v]) {
+                    tarjan(v);
+                    low[u] = min(low[u], low[v]);
+                    // if(dfn[u]<=low[v]){
+                    //     strongConnect++;
+                    // }
+                }
+                else if (instack[v] && low[u] > dfn[v]) {// 需要在栈之中
+                    low[u] = dfn[v];
+                }
+            }
+            if (low[u] == dfn[u]) {
+                int ssize;
+                int v;
+                strongConnect++;
+                do {
+                    ssize = sstack.size();
+                    v = sstack[ssize - 1];
+                    sstack.pop_back();
+    
+                    belong[v] = strongConnect;
+                    instack[v] = false;
+                } while (u != v);
+            }
+        }
+    };
+    int main()
+    {
+        int n, m;
+        cin >> n >> m;
+        int u, v;
+        Tarjan tarjan(n);
+        for (int i = 0; i < m; i++) {
+            cin >> u >> v;
+            tarjan.addEdge(u, v);
+        }
+        tarjan.tarjan(0);
+        cout << tarjan.strongConnect << endl;
+        for (int i = 0; i < tarjan.n; i++) {
+            cout << tarjan.belong[i] << " ";
+        }
+        cout << endl;
+        return 0;
+    }
+    /*
+    6 8
+    0 1
+    1 0
+    1 2
+    2 1
+    3 0
+    2 3
+    5 2
+    3 4
+    */
+    ```
+
+    **tarjan算法求强连通分量，求环**。
+
+    **Kosaraju算法求强连通分量，求环**
+
+    ```cpp
+    class Kosaraju {
+     private Digraph G;
+     private Digraph reverseG; //反向图
+     private Stack<Integer> reversePost; //逆后续排列保存在这
+     private boolean[] marked;
+     private int[] id; //第v个点在几个强连通分量中
+     private int count; //强连通分量的数量
+     public Kosaraju(Digraph G) {
+         int temp;
+         this.G = G;
+         reverseG = G.reverse();
+         marked      = new boolean[G.V()];
+         id          = new int[G.V()];
+         reversePost = new Stack<Integer>();
+    
+         makeReverPost(); //算出逆后续排列
+    
+         for (int i = 0; i < marked.length; i++) { //重置标记
+             marked[i] = false;
+         }
+    
+         for (int i = 0; i < G.V(); i++) { //算出强连通分量
+             temp = reversePost.pop();
+             if (!marked[temp]) {
+                 count++;
+                 dfs(temp);
+             }
+         }
+     }
+     /*
+         * 下面两个函数是为了算出 逆后序排列
+         */
+        private void makeReverPost() {
+            for (int i = 0; i < G.V(); i++) { //V()返回的是图G的节点数
+                if (!marked[i])
+                    redfs(i);
+            }
+        }
+    
+        private void redfs(int v) {
+            marked[v] = true;
+            for (Integer w: reverseG.adj(v)) { //adj(v)返回的是v指向的结点的集合
+                if (!marked[w])
+                    redfs(w);
+            }
+            reversePost.push(v); //在这里把v加入栈,完了到时候再弹出来,弹出来的就是逆后续排列
+        }
+        /*
+         * 标准的深度优先搜索
+         */
+        private void dfs(int v) {
+            marked[v] = true;
+            id[v] = count;
+            for (Integer w: G.adj(v)) {
+                if (!marked[w])
+                    dfs(w);
+            }
+        }
+    
+        public int count() { return count;}
+    }
+    ```
+
+    
+
 2. **拓扑排序**，如果可以进行拓扑排序的话，说明无环，如果不能进行拓扑排序，说明有环。
+
+    拓扑排序，每次选择入度为0的顶点，去除这个顶点之后同步更改入度：
+
+    刚开始使用队列存储度为0的顶点的序号，每次取出队列顶部的元素，将和其相连的顶点的入度减去1，当有顶点的入度为0时候，进入队列，当队列为空的时候还有没有遍历到的顶点的话，说明队列中存在环。
+
+    ```cpp
+    Status FindInDegree (ALGraph g, int *inDegree)
+    {
+    /* 求出图中所有顶点的入度 */
+        int  i;			/* 方法是搜索整个邻接表 */
+        ArcNode  *p;
+        for (i=0; i<MAX_VERT_NUM; i++)
+            inDegree[i] = 0;
+        for (i=0; i<g.vexNum; i++) {
+            p = g.vexs[i].edgelist;
+            while (p) {
+                ++inDegree[p->endvex];
+                p = p->nextedge;
+            }
+        }
+        return OK;
+    }	/* End of FindInDegree() */
+    
+    Status TopoSort (ALGraph g) {
+        int  inDegree[MAX_VERT_NUM];	/* 存储所有顶点的入度 */
+        SeqStack  s;		/* 存放入度为0的顶点 */
+        int  i, k, count = 0;	/* count 对输出顶点计数 */
+        ArcNode  *p;
+        FindInDegree (g, inDegree);	/* 得到所有得到的入度 */
+        InitStack (&s);
+        for (i=0; i<g.vexNum; i++)	/* 把所有入度为0的顶点入栈 */
+            if (!inDegree[i])
+                Push (&s, i);
+        while (!IsStackEmpty(s)) {
+            Pop (&s, &i);	/* 输出i号顶点并计数 */
+            printf ("%d\n", i, g.vexs[i].vertex);
+            ++count;
+            for (p=g.vexs[i].edgelist; p!=NULL; p=p->nextlist) {
+            /* 对i号顶点的每个邻接点的入度减1 */
+                k = p->endvex;
+                if (!(--inDegree[k]))	/* 入度为0，入栈 */
+                    Push(&s, k);
+            }	/* for */
+        }	/* while */
+        if (count < g.vexNum)
+            return ERROR;
+        else
+            return OK;
+    }	/* End of TopoSort() */
+    ```
+
+    
+
 3. [DFS判断一个图是否有环](https://blog.csdn.net/gh6267/article/details/79100408)
 
-## 拓扑排序
+    学习。
+    
+    ```cpp
+    #pragma warning(disable : 4996)
+    #include<cstdio>
+    #include<iostream>
+    #include<vector>
+    
+    using namespace std;
+    struct Edge {
+        int v, w;
+        Edge() {}
+        Edge(int _v) {
+            v = _v;
+        }
+        Edge(int _v, int _w) {
+            v = _v;
+            w = _w;
+        }
+    };
+    
+    class DFS {
+    public:
+        // 未被浏览-1，正在浏览0，已经浏览过1，如果找到0-0，说明存在环，否则不存在环。
+        vector<int>vis;// 每一个顶点是否被浏览过
+        int n;// 顶点的个数
+        vector<vector<Edge>>e;
+    
+        DFS(int _n) {
+            this->n = _n;
+            vis.resize(n, -1);
+            e.resize(n);
+        }
+        void addEdge(int _u, int _v, int _w) {
+            e[_u].push_back(Edge(_v, _w));
+        }
+        void addEdge(int _u, int _v) {
+            e[_u].push_back(Edge(_v));
+        }
+        bool dfs(int u) {
+            for (auto& node : e[u]) {
+                int& v = node.v, & w = node.w;
+                if (!vis[v]) {
+                    return false;
+                }
+                else if (vis[v] == -1) {
+                    vis[v] = 0;
+                    if (dfs(v) == false) {
+                        return false;
+                    }
+                }
+            }
+            vis[u] = 1;
+            return true;
+        }
+    };
+    int main() {
+        int n, m;
+        cin >> n >> m;
+        DFS sol(n);
+        int u, v;
+        for (int i = 0; i < m; i++) {
+            cin >> u >> v;
+            sol.addEdge(u, v);
+        }
+        if (sol.dfs(0)) {
+            cout << "不存在环" << endl;
+        }
+        else {
+            cout << "存在环" << endl;
+        }
+    }
+    /*
+    6 8
+    0 1
+    1 0
+    1 2
+    2 1
+    3 0
+    2 3
+    5 2
+    3 4
+    */
+    ```
+
+## 拓扑排序 
+
+​    如何进行拓扑排序呢？
+
+​    (1) 在有向图中选取一个没有前驱的顶点且输出之；
+
+​    (2) 从图中删去该顶点和所有以它为尾的弧。
+
+​    重复(1)~(2)直至所有顶点都已输出，或者当前图中不存在无前驱的顶点为止，后一种情况说明图中存在环。
+
+* 上面说的是一种通用的拓扑排序的方法。
+* 当**有向图无环**的时候，我们还可以使用**深度优先搜索的方法**进行拓扑排序，主要的方法就是深度优先搜索的过程中，最先退出深度优先搜索的顶点就是**出度为0**的节点，**按照DFS遍历的顺序记下来顶点的逆序的序列就是拓扑排序的一个序列**。
+
+## 关键路径
+
+**AOC-无环图网（Activity on Edge Network）**，**边表示活动，边的权代表活动的执行时间，顶点代表事件，也就是完成了某个活动**，可以这样来估计工程完成的时间。
+
+​    由于整个工程只有1个开始点，1个完成点，因此在正常情况下(无环)只有1个入度为0 的点(**源点**)和1个出度为0的点(**汇点**)。
+
+​    对AOE-网，常考虑如下的情况：
+
+​    (1) 完成整个工程至少需要多少时间；
+
+​    (2) 哪些活动是影响工程进度的关键。
+
+最长的路径就是关键路径，这个关键路径的时间预示着整个工程的完成时间。
+
+有关正权图dijkstra算法求最长路径：可以求最短路径，但是你却不能说dijkstra算法可以求最长路径，dijkstra算法每次找到一个最短路的节点，这个节点在后面的过程中将不会被更新，但是你却不能说我已经找到了当前看来最长的路径，这个路径在后面看来不会更新。
+
+对于一个AOE网络，可以采取以下的算法求我们的关键路径：
+
+![image-20210330201606789](Chapter07Graph/image-20210330201606789.png)
+
+可以看到，上面的黄线标出来的部分是我们的关键路径。
+
+求关键路径，就是求上面黄线标出来的这样的一条路径，是求的**有关边的一条路径**。
+
+**我们设置$ee[i]$为事件$i$最早开始的时间，$le[i]$为事件$i$最晚开始的时间，如果某一个点（事件）满足$ee[i]==le[i]$，那我们认为这个点（事件）是一个关键路径上的点（事件），这是一种夹逼的思想，我们找到所有的这样的点（事件）之后，也就找到了我们的关键路径上的所有的点，把这些点连在一块也就是一条路径。**
+
+要想找到关键路径上的边，我们**额外设置两个变量$e[i]和l[i]$，分别代表以顶点(事件)$i$为弧尾的边（活动，假设这个边为$<i,j>$开始的最早和最晚的时间，这两个变量和$ee[i]以及le[i]$满足一定的关系，这个关系很简单，可以自行体会一下：**
+
+$e[i]=ee[i],l[i]=le[j]-len(i,j),len(i,j)代表(i,j)之间的距离。$
+
+这是很明朗的一个关系，**关键路径的边就是满足$e[i]==l[i],e[j]==l[j]$的这样的边。**
+
+那么现在有一个**关键的问题**，我们如何求$ee[]和le[]数组$，分为两个阶段：
+
+1. 第一个阶段，求$ee[]$数组，求法如下：
+
+    $ee[j]=max(ee[i]+len(i,j))，边<i,j>是所有以j为弧尾的边的集合。$
+
+    初始条件$ee[0]=0,0号节点代表开始节点$。
+
+2. 第二个节点，求$le[]$数组，求法如下：
+
+    首先$le[n-1]=ee[n-1]$
+
+    $le[i]=min(le[j]-len(i,j)),边<i,j>是所有以i为弧尾的边$。
+
+    需要逆拓扑有序序列。
+
+    ```cpp
+    // 实现的伪代码
+    Status CriticalPath (ALGraph g)
+    {
+        int inDegree[MAX_VERT_NUM];	/* 存放各顶点的入度 */
+        SeqStack t, s;	    /* t-存放拓扑有序序列;   s-存放入度为0的顶点 */
+        int count = 0;	    /* 计数输出顶点 */
+        int ee[MAX_VERT_NUM];	/* 各顶点的最早发生时间 */
+        int le[MAX_VERT_NUM];	/* 各顶点的最迟发生时间*/
+        int i, j, k,  ee, el;
+        int dur;		/* 临时存放一个活动的持续时间 */
+        char tag;
+        ArcNode *p;
+        FindInDegree (g, inDegree);
+        InitStack (&s);   InitStack (&t);
+        count = 0;
+        for (i=0; i<MAX_VERT_NUM; i++)  /* 初始化最早发生时间 */
+            ee[i] = 0;
+        for (i=0; i<g.vexNum; i++)	         /* 所有入度为0的顶点入栈 */
+            if (!inDegree[i]) Push (&s, i);
+        while ( !IsStackEmpty (s)) {
+        /* 求所有顶点最早发生时间 */
+            Pop (&s, &j);   //从栈s中出来
+            Push (&t, j);     //进入栈t
+            ++count;
+            for (p=g.vexs[j].edgelist; p!=NULL; p=p->nextedge) {
+                k = p->endvex;
+                if (--inDegree[k] == 0)
+                    Push(&s, k);
+                if (ee[j]+(*(p->weight)) > ee[k])
+                    ee[k] = ee[j] + (*(p->weight));
+            }	/* for */
+        }
+        if (count < g.vexNum)	/* 有向网存在回路 */
+            return ERROR;	
+        /* 求各顶点的最迟发生时间 */
+        for (i=0; i<MAX_VERT_NUM; i++)	/* 初始化为最大值 */
+            le[i] = ee[g.vexNum-1];
+    
+        while ( !IsStackEmpty (t) ) {
+        /* 求各顶点最迟发生时间 */
+            for (Pop(&t, &j), p=g.vexs[j].edgelist; p!=NULL; p = p->nextedge) {
+                k = p->endvex;
+                dur = *(p->weight);
+                if (le[k] - dur < le[j])
+                    le[j] = le[k]-dur;
+            }
+        }	/* while */
+        for (j=0; j<g.vexNum; j++)
+            for (p=g.vexs[j].edgelist; p!=NULL; p=p->nextedge) {
+                k = p->endvex;
+                dur = *(p->weight);    /* 持续时间 */
+                ee = ee[j];	         /* <j,k>的最早发生时间 */
+                el = le[k]-dur;	         /* <j,k>的最迟发生时间 */ 
+                tag = (ee == el)? '*‘ : ' ';
+                printf ("%d->%d, During time is %d, ee = %d, 
+                          el = %d, %c\n", j+1, k+1, dur, ee, el, tag);
+        }
+    } /* End of CriticalPath() */
+    ```
+
+    **实现的一个代码，假设这个图的网状结构只有一个开始节点，只有一个结束节点，并且开始节点的序号不一定是0，结束节点的序号不一定是n-1（一共有n个顶点），我们需要得到一个拓扑有序的序列打印出所有的关键路径**。测试样例使用：
+
+    ![image-20210330201606789](Chapter07Graph/image-20210330201606789.png)
+
+    ```cpp
+    // 实现的一个代码
+    #include<cstdio>
+    #include<iostream>
+    #include<vector>
+    #include<queue>
+    #include<stack>
+    #include<algorithm>
+    using namespace std;
+    
+    class Edge {
+    public:
+        int v, w;
+        Edge(int _v) {
+            v = _v;
+            e = 0, l = 0;
+        }
+        Edge(int _v, int _w) {
+            v = _v;
+            w = _w;
+            e = 0, l = 0;
+        }
+        int e, l;
+        // 边的属性
+    };
+    
+    class Topological {
+    public:
+        const int INF = 0X3F3F3F3F;
+        int n;
+        // 不用vector<>为存储结构的话可以考虑十字链表
+        vector<vector<Edge>>edges;
+        vector<vector<Edge>>edgesRe;// 以u为弧头的边
+    
+        vector<int>indegree;
+    
+        stack<int>sstack;//求拓扑排序序列临时使用的栈
+        queue<int>topo;
+        stack<int>topoRe;// 存放拓扑排序后的顶点序列，用作求le[]用
+        vector<int>ee, le;
+        vector<int>e, l;
+    
+    
+        // 存储关键路径的子图
+        vector<vector<Edge>>criticalPath;
+        Topological(){}
+        // 存放关键路径的边
+        // 找到关键路径上的所有的边之后，实际上我们可以再次对这些边进行一个拓扑排序，就可以找到所有的路径了
+        Topological(int _n) {
+            this->n = _n;
+            edges.resize(_n);
+            edgesRe.resize(_n);
+            indegree.resize(_n);//存放每一个顶点的入度
+            ee.resize(n);
+            le.resize(n);
+            e.resize(n);
+            l.resize(n);
+        }
+        void addEdge(int u, int v, int w) {
+            edges[u].push_back(Edge(v, w));
+            edgesRe[v].push_back(Edge(u, w));
+        }
+        void addEdge(int u, int v) {
+            edges[u].push_back(Edge(v));
+            edgesRe[v].push_back(Edge(u));
+        }
+    
+        void topoSort() {
+            // 首先计算每一个顶点的入度
+            calIndegree();
+            putZeroDegreeInStack();
+            int num = 0;
+            while (!sstack.empty()) {
+                int u = sstack.top();
+                sstack.pop();
+                num++;
+    
+                topoRe.push(u);
+                topo.push(u);
+                for (auto& edge : edges[u]) {
+                    int& v = edge.v, & w = edge.w;
+                    if (--indegree[v] == 0) {
+                        sstack.push(v);
+                        if (ee[v] < ee[u] + w) {
+                            ee[v] = ee[u] + w;
+                        }
+                    }
+                }
+            }
+            if (num < n) {
+                cout << "存在环\n";
+                return;
+            }
+            // 下面求le
+            fill(le.begin(), le.end(), INF);
+            int lastVertical = topoRe.top();
+            le[lastVertical] = ee[lastVertical];
+    
+            // 求le
+            while (!topoRe.empty()) {
+                int u = topoRe.top();
+                topoRe.pop();
+                
+                for (auto& edge : edgesRe[u]) {
+                    int& v = edge.v, & w = edge.w, & l = edge.l, & e = edge.e;
+                    if (le[v] > le[u] - w) {
+                        le[v] = le[u] - w;
+                    }
+                }
+            }
+            // 下面我们需要找到所有的满足ee[i]==le[i]的顶点
+            cout << "关键路径上的所有的顶点为: \n";
+            for (int i = 0; i < n; i++) {
+                if (ee[i] == le[i]) {
+                    cout << i << " ";
+                }
+                //cout << ee[i] << " " << le[i] << endl;
+            }
+            cout << endl;
+    
+            // 最后一个节点的序号为lastVertical
+            // 下面我们计算l和e
+            while (!topo.empty()) {
+                int u = topo.front();
+                topo.pop();
+                
+                for (auto& edge : edges[u]) {
+                    int& v = edge.v, & w = edge.w, &e = edge.e,& l = edge.l;
+                    l = max(l, le[v] - w);
+                    e = ee[u];
+                }
+            }
+    
+            cout << "拓扑排序路径上的所有的边为: \n";
+            // 下面想要打印出所有的关键路径的话
+            // 对上面满足l==e的边进行拓扑排序，然后就可以找到这样的一个顺序
+            criticalPath.resize(n);
+            for (int i = 0; i < n; i++) {
+                for (auto& edge : edges[i]) {
+                    int& v = edge.v, & w = edge.w, & l = edge.l, & e = edge.e;
+                    //cout << l << " " << e << endl;
+                    if (l == e) {
+                        cout << i << " " << v << endl;
+                        criticalPath[i].push_back(Edge(v,w));
+                    }
+                }
+            }
+            // 找到了所有的关键路径
+            // 下面得到拓扑排序的序列。
+    
+        }
+    private:
+        void calIndegree() {
+            fill(indegree.begin(), indegree.end(), 0);
+            for (int i = 0; i < n; i++) {
+                for (auto& edge : edges[i]) {
+                    int& v = edge.v, & w = edge.w;
+                    indegree[v]++;
+                }
+            }
+        }
+        void putZeroDegreeInStack() {
+            for (int i = 0; i < n; i++) {
+                if (indegree[i] == 0) {
+                    sstack.push(i);
+                }
+            }
+        }
+    };
+    
+    int main() {
+        int n, m;
+        cin >> n >> m;
+        Topological topo(n);
+        int u, v, w;
+        for (int i = 0; i < m; i++) {
+            cin >> u >> v >> w;
+            topo.addEdge(u - 1, v - 1, w);
+        }
+        topo.topoSort();
+        return 0;
+    }
+    
+    /*9个顶点，11条边，输入顶点的编号1开始，代码中从0开始处理
+    9 11
+    1 2 6
+    1 3 4
+    1 4 5
+    2 5 1
+    3 5 1
+    4 6 2
+    5 7 9
+    5 8 7
+    6 8 4
+    7 9 2
+    8 9 4
+    */
+    ```
+
+    

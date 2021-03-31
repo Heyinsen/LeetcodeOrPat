@@ -1,86 +1,146 @@
-// 没跑过
+// 实现的一个代码
+/*9个顶点，11条边，输入顶点的编号1开始，代码中从0开始处理
+9 11
+1 2
+1 3
+1 4
+2 5
+3 5
+4 6
+5 7
+5 8
+6 8
+7 9
+8 9
+*/
 #include<cstdio>
 #include<iostream>
 #include<vector>
+#include<queue>
+#include<stack>
+#include<algorithm>
 using namespace std;
-
-const int maxn=1005;
-struct Node{
-    int v;
-    Node(){}
+class Edge{
+public:
+    int v,w;
+    Edge(int _v){
+        v=_v;
+    }
+    Edge(int _v,int _w){
+        v=_v;
+        w=_w;
+    }
 };
-vector<vector<Node>>head;// 邻接表的头节点
-int scc;//强连通分量的个数
 
-vector<int>dfn;// 顶点访问的顺序
-int cnt=0;// 当前时间戳
-vector<int>low;// 子节点最早能访问的非父亲节点的节点的dfn的值
-
-// 有向图中使用
-vector<int>instack; // 当前节点是否在栈中,求割点与桥的时候不需要这个变量
-vector<int>sstack;// 栈，求割点与桥不需要这个变量
-
-// 无向连通图G中，一个顶点是割点
-// 1、根结点u为割顶当且仅当它有两个或者多个子结点；
-// 2、非根结点u为割顶当且仅当u存在结点v，使得v极其所有后代都没有反向边可以连回u的祖先（u不算）
-// 第二个条件的代码中就是low[u]<=low[v]
-// 一条边为桥
-// 当且仅当该边的孩子节点没有反向边可以连向父亲或者是祖先节点
-// 放在代码中就是low[u]<low[v]，少了一个=
-void tarjan(int u){
-    dfn[u]=low[u]=++cnt;// 0代表没有访问过
-    int son=0;//记录根节点有多少孩子节点，根节点满足u==fat
-    instack[u]=true;
-    sstack.push_back(u);
-    for(int i=0;i<head[u].size();i++){
-        Node &node=head[u][i];
-        int& v=node.v;
-        if(!dfn[v]){
-            tarjan(v);
-            low[u]=min(low[u],low[v]);
-        }
-        else if(instack[v]&&low[u]>dfn[v]){// 上面已经处理过重边，这边不需要处理
-           low[u]=dfn[v];
-        }
+class Topological{
+public:
+    int n;
+    // 不用vector<>为存储结构的话可以考虑十字链表
+    vector<vector<Edge>>e;
+    vector<vector<Edge>>eRe;// 以u为弧头的边
+    
+    vector<int>indegree;
+    
+    stack<int>sstack;//求拓扑排序序列临时使用的栈
+    stack<int>topo;// 存放拓扑排序后的顶点序列。
+    stack<int>topoRe;// 存放拓扑排序后的顶点序列，用作求le[]用
+    vector<int>ee,le;
+    vector<int>e,l;
+    
+    // 存放关键路径的边
+    // 找到关键路径上的所有的边之后，实际上我们可以再次对这些边进行一个拓扑排序，就可以找到所有的路径了
+    Topological(int _n){
+        this->n=_n;
+        e.resize(n);
+        indegree.resize(_n);//存放每一个顶点的入度
+        ee.resize(n);
+        le.resize(n);
+        e.resize(n);
+        l.resize(n);
     }
-    if(low[u]==dfn[u]){
-        scc++;
-        do{
-            v=sstack[sstack.size()-1];
-            sstack.pop_back();
-            instack[v]=false;
-            // belong[v]=scc;
+    void addEdge(int u,int v,int w){
+        e[u].push_back(Edge(v,w));
+        e[v].push_back(Edge(u,w));
+    }
+    void addEdge(int u,int v){
+        e[u].push_back(Edge(v));
+        e[v].push_back(Edge(u));
+    }
+    
+    void topoSort(){
+        // 首先计算每一个顶点的入度
+        calIndegree();
+        putZeroDegreeInStack();
+        int num=0;
+        while(!sstack.empty()){
+            int u=sstack.top();
+            sstack.pop();
+            num++;
             
+            topoRe.push(u);
+            for(auto&edge:e[u]){
+                int &v=edge.v,&w=edge.w;
+                if(--indegree[v]==0){
+                    sstack.push(v);
+                    if(ee[v]<ee[u]+w){
+                        ee[v]=ee[u]+w;
+                    }
+                }
+            }
         }
-        while(v!=u)
+        if(num<n){
+            cout<<"存在环\n";
+            return;
+        }
+        // 下面求le
+        int lastVertical=topoRe.top();
+        le[lastVertical]=ee[lastVertical];
+        while(!topoRe.empty()){
+            int u=topoRe.top();
+            topoRe.pop();
+            for(auto&edge:eRe[u]){
+                int &v=edge.v,&w=edge.w;
+               	if(le[v]>le[u]-w){
+                    le[v]=le[u]-w;
+                }
+            }
+        }
+        // 下面我们需要找到所有的满足ee[i]==le[i]的顶点
+        for(int i=0;i<n;i++){
+            if(ee[i]==le[i]){
+                cout<<i<<" ";
+            }
+        }
+        cout<<endl;
     }
-    // 根节点
-    if(u==fat&&son>1){
-        cut[u]=true;
+private:
+    void calIndegree(){
+        fill(indegree.begin(),indegree.end(),0);
+        for(int i=0;i<n;i++){
+            for(auto &edge:e[i]){
+                int &v=e.v,&w=e.w;
+                indegree[v]++;
+            }
+        }
     }
-}
-
+    void putZeroDegreeInStack(){
+       	for(int i=0;i<n;i++){
+            if(indegree[i]==0){
+                sstack.push(i);
+            }
+        }
+    }
+};
 
 int main(){
-    int n;
-    int m;
+    int n,m;
     cin>>n>>m;
-    head.resize(n); cut.resize(n);
-    dfn.resize(n);
-    low.resize(n);
-    instack.resize(n);
-    cnt=0;
-    
+    Topological topo;
+    int u,v,w;
     for(int i=0;i<m;i++){
-        int u,v;
-        cin>>u>>v;
-        head[u].push_back(v); 
-        head[v].push_back(u); 
+        cin>>u>>v>>w;
+        topo.addEdge(u,v,w);
     }
-
-    for(int i=0;i<n;i++){
-        if(!dfn[i]){
-            tarjan(i,i);
-        }
-    }
+    topo.topoSort();
+    return 0;
 }
