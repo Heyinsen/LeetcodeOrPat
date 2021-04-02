@@ -1,0 +1,32 @@
+//#pragma warning(disable:4996)
+//#include<bits/stdc++.h>
+#include<cstdio>
+#include<iostream>
+#include<cstring>
+#include<string>
+#include<vector>
+#include<algorithm>
+#include<stack>
+#include<queue>
+#include<set>
+#include<map>
+#include<cmath>
+
+
+#define abss(a) ((a)>0?(a):-(a))
+#define rep(i,a,b) for(int i=a;i<=b;i++)
+#define elif else if
+#define pir pair<int,int>
+typedef long long ll;
+typedef unsigned long long ull;
+
+const int INF = 0x3f3f3f3f;
+const long long int LLINF=0x3f3f3f3f3f3f3f3f;
+
+using namespace std;
+//ios_base::sync_with_stdio(false);cin.tie(0);
+
+/*
+(?<=\r\n)\r\n
+ //.*\n删除注释
+*/
