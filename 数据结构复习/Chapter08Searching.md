@@ -1,5 +1,3 @@
-[  
-
 [ 前序中序后序数列得到树的方式](https://blog.csdn.net/suliangkuanjiayou/article/details/102960971)
 
 # Chapter08Searching
