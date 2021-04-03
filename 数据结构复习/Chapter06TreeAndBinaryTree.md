@@ -183,6 +183,8 @@
     
     
     
+    ```
+
 int main() {
         vector<int>a({ 2,6,3,4,8,1,0,9,10 });
         // 建立二叉搜索树
@@ -226,8 +228,9 @@ int main() {
     ```cpp
     // 伪代码
     //Postorder Traversal
-    
-    
+
+
+​    
     void PostOrderTraverse (PBinTree T ) {
     Stack S; PBinTree  p;   StackNode w;
         StackEmpty( S );    p = T;
@@ -255,9 +258,10 @@ int main() {
     }
     
     ```
-    
-    
-    
+
+
+​    
+​    
     ```cpp
     // 未测试,写法较为繁琐
     void postOrderTraverse(TreeNode*root){
@@ -287,8 +291,9 @@ int main() {
                 top=sstack.top();
                 curNode=top.node;
                 tag=top.tag;
-                
-                
+
+
+​                
                 if(tag==0){// 遍历右子树，根节点重新入栈
                     sstack.pop();
                     sstack.push(Node(curNode,1));
@@ -762,8 +767,173 @@ node* createWithPre(){
 
     这个表示法的Node中只设置一个指向双亲的指针，这样我们可以轻松的找到孩子节点的双亲节点。
 
-    缺点：无法
+    缺点：无法根据双亲找到孩子，无法判断孩子是左子树的孩子还是右子树的孩子
+
+    解决第二个问题，可以改进一下，在一个表中存放这棵树的先根遍历，这样的话拥有同一个双亲并且排在前面的就是左子树，排在后面的就是右子树。
 
 2. 子表表示法
 
-3. 
+    每一个元素的所有孩子节点用一个链表表示。
+
+    ```cpp
+    typedef struct EdgeNode		/* 子表中结点的结构 */
+    {
+        int  node_position;
+        struct EdgeNode  *link;
+    } EdgeNode;
+    
+    typedef struct ChiTreeNode		/* 结点表中结点的结构 */
+    {
+        DataType  info;
+        struct EdgeNode  *children;
+    } ChiTreeNode;	
+    typedef struct  ChiTree	/* 树结构 */
+    {
+        ChiTreeNode  node_list[MAXNUM];
+        int  root;			/* 根结点的位置 */
+        int  n;			/* 结点的个数 */
+    } ChiTree, *PChiTree;	
+    ```
+
+    例如这样表示：
+
+    ![image-20210403105814643](Chapter06TreeAndBinaryTree/image-20210403105814643.png)
+
+    或者孩子节点里面直接存放值。
+
+3. 孩子兄弟表示法，左孩子右兄弟。
+
+    ```cpp
+    typedef  struct CSNode
+    {
+        DataType  info;
+        struct CSNode  *lchild;
+        struct CSNode  *rsibling;
+    }CSTree, *PCSTree;
+    ```
+
+    
+
+## Traversal of Tree and Forest
+
+1. 增加头节点的森林也可以转化为多叉树。
+
+2. 森林转化为二叉树（孩子兄弟表示法）
+
+    > ​    如果F＝{T1, T2, …, Tm}是森林，则可按如下规则转换成一棵二叉树B＝{root, LB, RB}。
+    >
+    > ​    (1) 若F为空，则B为空树；
+    >
+    > ​    (2) 若F非空，则B的根root为森林中第一棵树的根Root(T1)，B的左子树LB是从T1中根结点的子树森林F1＝{T11, T12 ,…, T1m1}转换而成的二叉树；其右子树RB是从森林F’＝{T2, T3, … , Tm}转换而成的二叉树。
+
+3. 二叉树转化为森林：
+
+    > ​    如果B＝{root, LB, RB} 是一棵二叉树，则可按如下规则转换成森林F＝{T1, T2, …, Tm}
+    >
+    > ​    (1) 若B为空，则F为空树；
+    >
+    > ​    (2) 若B非空，则为森林中第一棵树的根Root(T1)即为 B的根root， T1中根结点的子树森林F1＝{T11, T12,…, T1m1} 是由B的左子树LB转换而来的森林；F中除T1之外的其余树组成的森林F’＝{T2, T3, … , Tm}是由B的右子树转换而成的。
+
+## Huffman树和编码
+
+带权的外部路径长度最小的扩充二叉树叫做**哈夫曼树**。
+
+算法描述：
+
+> ​     (1) 根据给定的n个权值{*w*1, *w*2, …, *w**n*}，构成n棵二叉树的集合F={T1,T2,…,Tn}，其中每一棵二叉树Ti中只有一个带权为*w**i*的根结点，其左右子树为空。
+>
+> ​    (2) 在F中选取**两棵权值最小**的树作为左右子树(原则上没有要求左边的小或者右边的小)构造一棵新的二叉树，且新二叉树的根结点的权值为**其左右子树的根结点权值之和**。
+>
+> ​    (3) 在F中删除这两棵树，同时将新得到的二叉树加入F中。
+>
+> ​    (4) 重复(2)和(3)，直到F中只含一棵树为止。该树即为哈夫曼树。
+
+具体的实现：
+
+1. 初始化：设置一个优先队列存储所有初始节点，节点中含有权值信息，优先队列队顶的元素为权值最小的元素。
+
+2. 当优先队列中的元素的个数>=2的时候：
+
+    > 取出优先队列中队头的两个元素，计算权值和构造一个新节点，新节点的两个孩子指向刚取出的两个节点，新节点加入优先队列。
+
+3. 结束。
+
+用静态链实现的一个：
+
+```cpp
+PHtTree huffman (int n, int *w)	
+/* 构造具有n个叶结点的哈夫曼树*/
+/* 数组w[1…n]中存放n个权值 */
+{
+    PHtTree  pht;
+    int  i, j, x1, x2, m1, m2;
+    pht = (PHtTree) malloc (sizeof (struct HtTree));    /* 创建空哈夫曼树 */
+    assert(pht);
+    for( i=1; i<=2*n - 1; i++ ) { 	/* 置初态 */
+        pht->ht[i].lchild = 0;
+        pht->ht[i].rchild = 0;
+        pht->ht[i].parent = 0;
+        if (i<=n)  
+            pht->ht[i].weight = w[i];
+        else
+            pht->ht[i].weight = 0;
+      }
+    /* 每循环一次构造一个内部结点 */
+    for( i=1; i < n ; i++ ) {
+        Select (pht, n+i, &x1, &x2);
+        pht->ht[x1].parent = n + i;	/* 构造一个内部结点 */
+        pht->ht[x2].parent = n + i;
+        pht->ht[n+i].weight = pht->ht[x1].weight + pht->ht[x2].weight;
+        pht->ht[n+i].lchild = x1;
+        pht->ht[n+i].rchild = x2;
+        pht->root = n+i;
+    }
+    return pht;
+}
+void Select (PHtTree pht, int pos, int *x1, int *x2)
+{
+    int  m1 = MAXINT, m2 = MAXINT;	 /* 相关变量赋初值 */
+    for (j=1; j<pos; j++) {/* 找两个最小权的无父结点的结点 */
+        if (pht->ht[j].weight<m1 && pht->ht[j].parent == 0) {
+            m2 = m1;
+            x2 = x1;
+            m1 = pht->ht[j].weight;
+            x1 = j;
+        }
+        else if (pht->ht[j].weight<m2 && pht->ht[j].parent == 0) {
+            m2 = pht->ht[j].weight;
+            x2 = j;
+        }
+    }
+}
+```
+
+4. 一些相关概念：
+
+    l编码(coding): 需建立码本来表达数据
+
+    l码本(codebook): 用来表达一定量的信息或一组事件所需的一系列符号（如字母、数字等）
+
+    l码字(code): 对每个信息或事件所赋的码符号序列
+
+    l码字的长度(字长)(code length): 每个码字里的符号个数
+
+5. 哈夫曼编码：
+
+    ​    在一个字符集中，任何一个字符的编码**都不是**另一个字符编码的前缀，这种编码称为**前缀编码**。
+
+    ​    我们可以利用二叉树来设计二进制的前缀编码。约定左分支表示字符’0’，右分支表示字符’1’，则可以用从根结点到叶子结点的路径上的分支字符串作为该叶子结点字符的编码。如此得到的编码必是*前缀编码*。
+
+    假设某一个叶子x结点的编码是另一个叶子结点y编码的前缀，说明从根结点到叶子结点y中间需经过结点x，从而说明x有左或右子树，这与x是叶子结点矛盾。
+
+    ​    那么现在求最短的二进制编码实际上就是构造哈夫曼树的过程，由此得到的二进制编码，称为**哈夫曼编码**。
+
+6. **性质**
+
+    * 哈夫曼树中没有度为1的节点？
+
+        从哈夫曼树的构造中我i们可以看到，没有度为1的节点。
+
+        **严格的（正则的）二叉树**
+
+7. 哈夫曼树的遍历较为简单，这里略过，
